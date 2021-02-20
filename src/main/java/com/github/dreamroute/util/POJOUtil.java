@@ -5,10 +5,15 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
+import static java.util.Locale.ENGLISH;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -28,6 +33,8 @@ public class POJOUtil {
     private static final ConcurrentHashMap<Class<?>, List<Class<?>>> SUPER_CLASS_CACHE = new ConcurrentHashMap<>();
     // Getter method cache
     private static final ConcurrentHashMap<Class<?>, Map<String, Method>> GETTER_CACHE = new ConcurrentHashMap<>();
+    // Setter method cache
+    private static final ConcurrentHashMap<Class<?>, Map<String, Method>> SETTER_CACHE = new ConcurrentHashMap<>();
 
     /**
      * 获取POJO的所有父类，不包括Object.class，不包括自己
@@ -36,7 +43,7 @@ public class POJOUtil {
         if (cls == null)
             return new ArrayList<>();
 
-        return SUPER_CLASS_CACHE.computeIfAbsent(cls, key -> {
+        return newArrayList(SUPER_CLASS_CACHE.computeIfAbsent(cls, key -> {
             final List<Class<?>> classes = new ArrayList<>();
             Class<?> superclass = key.getSuperclass();
             while (superclass != Object.class) {
@@ -44,7 +51,7 @@ public class POJOUtil {
                 superclass = superclass.getSuperclass();
             }
             return classes;
-        });
+        }));
     }
 
     /**
@@ -54,15 +61,17 @@ public class POJOUtil {
         if (cls == null)
             return new ArrayList<>();
 
-        return FIELD_CACHE.computeIfAbsent(cls, key -> {
+        return newArrayList(FIELD_CACHE.computeIfAbsent(cls, key -> {
             List<Class<?>> superClass = getAllSuperClass(key);
             superClass.add(key);
+            List<String> setNames = getAllSetterMethod(key).keySet().stream().map(name -> name.substring(3, 4).toLowerCase(ENGLISH) + name.substring(4)).collect(toList());
+            List<String> getNames = getAllGetterMethod(key).keySet().stream().map(name -> name.substring(3, 4).toLowerCase(ENGLISH) + name.substring(4)).collect(toList());
             return superClass.stream()
                     .map(Class::getDeclaredFields)
                     .flatMap(Arrays::stream)
-                    .filter(field -> !field.getName().startsWith("serialVersionUID"))
+                    .filter(field -> setNames.contains(field.getName()) && getNames.contains(field.getName()))
                     .collect(toList());
-        });
+        }));
     }
 
     /**
@@ -72,7 +81,7 @@ public class POJOUtil {
         if (cls == null)
             return new HashMap<>();
 
-        return GETTER_CACHE.computeIfAbsent(cls, key -> {
+        return newHashMap(GETTER_CACHE.computeIfAbsent(cls, key -> {
                     List<Class<?>> superClass = getAllSuperClass(key);
                     superClass.add(key);
                     return superClass.stream()
@@ -81,6 +90,25 @@ public class POJOUtil {
                             .filter(m -> m.getName().startsWith("get") || m.getName().startsWith("is"))
                             .collect(toMap(Method::getName, identity()));
                 }
-        );
+        ));
+    }
+
+    /**
+     * 获取所有Setter方法，包括父类
+     */
+    public static Map<String, Method> getAllSetterMethod(Class<?> cls) {
+        if (cls == null)
+            return new HashMap<>();
+
+        return newHashMap(SETTER_CACHE.computeIfAbsent(cls, key -> {
+                    List<Class<?>> superClass = getAllSuperClass(key);
+                    superClass.add(key);
+                    return superClass.stream()
+                            .map(Class::getDeclaredMethods)
+                            .flatMap(Arrays::stream)
+                            .filter(m -> m.getName().startsWith("set"))
+                            .collect(toMap(Method::getName, identity()));
+                }
+        ));
     }
 }
