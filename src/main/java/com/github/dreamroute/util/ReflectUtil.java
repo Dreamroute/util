@@ -13,31 +13,52 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Locale.ENGLISH;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * 此工具类本质上是一个反射工具类，与普通的反射工具类的区别在于此类只处理POJO类型的类，
- * POJO一般意义上的规范：1、属性都是private的；2、属性都有一对get/set方法；3、有一个公共的无参构造方法
+ * 反射工具类，加入强引用缓存提高性能
  *
  * @author w.dehi
  */
-public class POJOUtil {
-    private POJOUtil() {}
+public class ReflectUtil {
+    private ReflectUtil() {}
 
-    // Field cache
-    private static final ConcurrentHashMap<Class<?>, List<Field>> FIELD_CACHE = new ConcurrentHashMap<>();
+    // Super interface cache
+    private static final ConcurrentHashMap<Class<?>, Set<Class<?>>> SUPER_INTERFACE_CACHE = new ConcurrentHashMap<>();
     // Super class cache
     private static final ConcurrentHashMap<Class<?>, List<Class<?>>> SUPER_CLASS_CACHE = new ConcurrentHashMap<>();
+    // Field cache
+    private static final ConcurrentHashMap<Class<?>, List<Field>> FIELD_CACHE = new ConcurrentHashMap<>();
     // Getter method cache
     private static final ConcurrentHashMap<Class<?>, Map<String, Method>> GETTER_CACHE = new ConcurrentHashMap<>();
     // Setter method cache
     private static final ConcurrentHashMap<Class<?>, Map<String, Method>> SETTER_CACHE = new ConcurrentHashMap<>();
 
     /**
-     * 获取POJO的所有父类，不包括Object.class，不包括自己
+     * 获取class的所有父接口
+     */
+    public static Set<Class<?>> getAllSuperInterface(Class<?> cls) {
+        return newHashSet(SUPER_INTERFACE_CACHE.computeIfAbsent(cls, key -> {
+            Set<Class<?>> result = new HashSet<>();
+            recursiveCls(cls, result);
+            return result;
+        }));
+    }
+
+    private static void recursiveCls(Class<?> cls, Set<Class<?>> result) {
+        Class<?>[] interfaces = cls.getInterfaces();
+        if (interfaces.length > 0) {
+            result.addAll(Arrays.asList(interfaces));
+            Arrays.stream(interfaces).forEach(inter -> recursiveCls(inter, result));
+        }
+    }
+
+    /**
+     * 获取class的所有父类，不包括Object.class，不包括自己
      */
     public static List<Class<?>> getAllSuperClass(Class<?> cls) {
         if (cls == null)
@@ -111,4 +132,5 @@ public class POJOUtil {
                 }
         ));
     }
+
 }

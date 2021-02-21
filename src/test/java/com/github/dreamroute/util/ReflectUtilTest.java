@@ -9,18 +9,29 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import static com.github.dreamroute.util.POJOUtil.getAllFields;
-import static com.github.dreamroute.util.POJOUtil.getAllGetterMethod;
-import static com.github.dreamroute.util.POJOUtil.getAllSetterMethod;
-import static com.github.dreamroute.util.POJOUtil.getAllSuperClass;
+import static com.github.dreamroute.util.ReflectUtil.getAllFields;
+import static com.github.dreamroute.util.ReflectUtil.getAllGetterMethod;
+import static com.github.dreamroute.util.ReflectUtil.getAllSetterMethod;
+import static com.github.dreamroute.util.ReflectUtil.getAllSuperClass;
+import static com.github.dreamroute.util.ReflectUtil.getAllSuperInterface;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Comparator.comparing;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-class POJOUtilTest {
+class ReflectUtilTest {
+
+    interface X {}
+    interface A extends X {}
+    interface B {}
+    interface C extends A, B {}
+    interface D extends C {}
 
     @Data
     static class Parent {
@@ -35,6 +46,14 @@ class POJOUtilTest {
     }
 
     @Test
+    void getAllSuperInterfaceTest() {
+        Set<Class<?>> superInterface = getAllSuperInterface(D.class);
+        Set<Class<?>> expected = newHashSet(X.class, A.class, B.class, C.class);
+        Set<Class<?>> difference = difference(superInterface, expected);
+        assertEquals(0, difference.size());
+    }
+
+    @Test
     void getAllSuperClassTest() {
         assertIterableEquals(newArrayList(), getAllSuperClass(null));
         assertIterableEquals(newArrayList(), getAllSuperClass(Parent.class));
@@ -44,7 +63,7 @@ class POJOUtilTest {
     @Test
     void getAllFieldsTest() {
         List<Field> fields = getAllFields(Sub.class);
-        List<String> names = fields.stream().map(Field::getName).sorted(comparing(identity())).collect(toList());
+        List<String> names = fields.stream().map(Field::getName).collect(toList());
 
         List<String> expected = newArrayList("id", "name");
         expected.sort(comparing(identity()));
@@ -75,5 +94,5 @@ class POJOUtilTest {
 
         assertIterableEquals(expected, result);
     }
-}
 
+}
