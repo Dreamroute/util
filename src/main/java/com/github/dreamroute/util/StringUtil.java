@@ -7,14 +7,12 @@ import java.util.Random;
 import static java.util.Locale.ENGLISH;
 
 /**
- * 
  * @author w.dehi
- *
  */
 public class StringUtil {
 
     private StringUtil() {}
-    
+
     private static final String SPLIT = "_";
 
     /**
@@ -70,10 +68,16 @@ public class StringUtil {
         return StringUtils.rightPad(String.valueOf(new Random().nextInt(999999)), 6, "0");
     }
 
+    /**
+     * 字符串是否为空
+     */
     public static boolean isEmpty(String str) {
         return str == null || str.trim().length() == 0;
     }
 
+    /**
+     * 字符串是否为非空
+     */
     public static boolean isNotEmpty(String str) {
         return !isEmpty(str);
     }

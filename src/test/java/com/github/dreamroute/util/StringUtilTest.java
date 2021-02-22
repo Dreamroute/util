@@ -5,8 +5,12 @@ import org.junit.jupiter.api.Test;
 import static com.github.dreamroute.util.StringUtil.getValiCode4;
 import static com.github.dreamroute.util.StringUtil.getValiCode6;
 import static com.github.dreamroute.util.StringUtil.humpToUnderline;
+import static com.github.dreamroute.util.StringUtil.isEmpty;
+import static com.github.dreamroute.util.StringUtil.isNotEmpty;
 import static com.github.dreamroute.util.StringUtil.underlineToHump;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StringUtilTest {
 
@@ -32,5 +36,21 @@ class StringUtilTest {
     void getValiCode6Test() {
         String valiCode6 = getValiCode6();
         assertEquals(6, valiCode6.length());
+    }
+
+    @Test
+    void isEmptyTest() {
+        assertFalse(isEmpty("w"));
+        assertTrue(isEmpty(null));
+        assertTrue(isEmpty(""));
+        assertTrue(isEmpty(" "));
+    }
+
+    @Test
+    void isNotEmptyTest() {
+        assertTrue(isNotEmpty("w"));
+        assertFalse(isNotEmpty(null));
+        assertFalse(isNotEmpty(""));
+        assertFalse(isNotEmpty(" "));
     }
 }
