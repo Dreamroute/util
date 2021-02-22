@@ -16,6 +16,7 @@ import static com.github.dreamroute.util.ReflectUtil.getAllGetterMethod;
 import static com.github.dreamroute.util.ReflectUtil.getAllSetterMethod;
 import static com.github.dreamroute.util.ReflectUtil.getAllSuperClass;
 import static com.github.dreamroute.util.ReflectUtil.getAllSuperInterface;
+import static com.github.dreamroute.util.ReflectUtil.getFieldValue;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.newHashSet;
@@ -62,8 +63,8 @@ class ReflectUtilTest {
 
     @Test
     void getAllFieldsTest() {
-        List<Field> fields = getAllFields(Sub.class);
-        List<String> names = fields.stream().map(Field::getName).collect(toList());
+        Map<String, Field> fields = getAllFields(Sub.class);
+        List<String> names = fields.values().stream().map(Field::getName).sorted().collect(toList());
 
         List<String> expected = newArrayList("id", "name");
         expected.sort(comparing(identity()));
@@ -93,6 +94,14 @@ class ReflectUtilTest {
         expected.sort(comparing(identity()));
 
         assertIterableEquals(expected, result);
+    }
+
+    @Test
+    void getFieldValueTest() {
+        Parent p = new Parent();
+        p.setId(1L);
+        Long id = getFieldValue(p, "id");
+        assertEquals(1L, id);
     }
 
 }
