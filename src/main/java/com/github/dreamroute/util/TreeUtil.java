@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toMap;
  *     private List<Node> children;
  * }
  * 2.调用buildTree方法，会返回一颗多叉树
- * 3.调用sort方法，传入一棵树，返回排好序的树
+ * 3.调用sortTree方法，传入一棵树，返回排好序的树
  *
  * </pre>
  *
