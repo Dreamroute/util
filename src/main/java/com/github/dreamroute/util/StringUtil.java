@@ -70,4 +70,12 @@ public class StringUtil {
         return StringUtils.rightPad(String.valueOf(new Random().nextInt(999999)), 6, "0");
     }
 
+    public static boolean isEmpty(String str) {
+        return str == null || str.trim().length() == 0;
+    }
+
+    public static boolean isNotEmpty(String str) {
+        return !isEmpty(str);
+    }
+
 }
